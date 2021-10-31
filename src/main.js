@@ -42,7 +42,7 @@ app.post('/upload', async function(req, res) {
   if (body.projectName.length > 50) {
     return res.status(400).send('Project name is too long.');
   }
-  if (body.projectName.match(/[^a-zA-Z0-9_]/g)) {
+  if (body.projectName.match(/[^a-zA-Z0-9_\-]/g)) {
     return res.status(400).send('Project name can only contain letters, numbers and underscores.');
   }
   const projectName = body.projectName;
@@ -54,7 +54,7 @@ app.post('/upload', async function(req, res) {
   if (body.baseImage.length > 50) {
     return res.status(400).send('Base image is too long.');
   }
-  if (body.baseImage.match(/[^a-zA-Z0-9_/]/g)) {
+  if (body.baseImage.match(/[^a-zA-Z0-9_/.\-]/g)) {
     return res.status(400).send('Base image can only contain letters, underscores and slashes.');
   }
   if (!fs.existsSync(path.resolve('/usr/images', body.baseImage, 'Dockerfile'))) {
