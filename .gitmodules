@@ -1,0 +1,3 @@
+[submodule "FaaS-Base-Runner-Images"]
+	path = FaaS-Base-Runner-Images
+	url = ../FaaS-Base-Runner-Images.git
