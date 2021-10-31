@@ -44,16 +44,19 @@ app.post('/upload', async function(req, res) {
   const projectName = body.projectName;
 
   // Get base image path
-  if (body.baseImagePath === undefined || body.baseImagePath === '') {
-    return res.status(400).send('Base image path is required.');
+  if (body.baseImage === undefined || body.baseImage === '') {
+    return res.status(400).send('Base image is required.');
   }
-  if (body.baseImagePath.length > 50) {
-    return res.status(400).send('Base image path is too long.');
+  if (body.baseImage.length > 50) {
+    return res.status(400).send('Base image is too long.');
   }
-  if (body.baseImagePath.match(/[^a-zA-Z0-9_/]/g)) {
-    return res.status(400).send('Base image path can only contain letters, underscores and slashes.');
+  if (body.baseImage.match(/[^a-zA-Z0-9_/]/g)) {
+    return res.status(400).send('Base image can only contain letters, underscores and slashes.');
   }
-  const baseImagePath = body.baseImagePath;
+  if (!fs.existsSync(path.resolve('/usr/images', body.baseImage, 'Dockerfile'))) {
+    return res.status(400).send('Base image does not exist.');
+  }
+  const baseImagePath = path.resolve('/usr/images', body.baseImage);
 
   // Extract ZIP file
   let project = req.files.project;
