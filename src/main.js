@@ -5,10 +5,14 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const fileUpload = require('express-fileupload');
 const extract = require('extract-zip')
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
+const Docker = require('dockerode');
+const tarfs = require('tar-fs');
 
 const app = express();
+
+var docker = new Docker({socketPath: '/var/run/docker.sock'});
 
 app.use(helmet());
 app.use(bodyParser.json());
@@ -84,18 +88,45 @@ app.post('/upload', async function(req, res) {
                       .map(dirent => dirent.name)
   
   projectOutputDir = path.resolve(projectOutputDir, directories[0]);
-  console.log(projectOutputDir);
+
+  // Copy base image to project directory
+  fs.copySync(baseImagePath, projectOutputDir)
+  
+  const pack = tarfs.pack(path.join(projectOutputDir, '.'));
 
   // Build Docker Image
-  
-  // Delete output directory
-  fs.rmdir(projectOutputDir, { recursive: true }, function (err) {
-    if (err) {
-      console.error('Error while deleting output directory:', err);
-    }
-  });
+  let imageName = 'project-' + projectName;
+  let imageTag = 'latest';
+  await docker.buildImage(
+    pack,
+    {
+      t: imageName + ':' + imageTag,
+      dockerfile: 'Dockerfile'
+    },
+    function (err, stream) {
+      if (err) {
+        console.log(err);
+        return res.status(400).send('Error while building image.');
+      }
 
-  res.send('File uploaded successfully!');
+      stream.on('data', function (data) {
+        let str = data.toString();
+        res.write(str);
+      });
+
+      stream.on('end', function () {
+        res.write('Project built successfully');
+
+        // Delete output directory
+        fs.rm(projectOutputDir, { recursive: true }, function (err) {
+          if (err) {
+            console.error('Error while deleting output directory:', err);
+          }
+        });
+
+        res.end();
+      });
+  })
 });
 
 app.listen(3000, () => {
