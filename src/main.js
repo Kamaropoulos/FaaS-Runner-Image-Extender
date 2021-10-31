@@ -42,7 +42,19 @@ app.post('/upload', async function(req, res) {
     return res.status(400).send('Project name can only contain letters, numbers and underscores.');
   }
   const projectName = body.projectName;
-  
+
+  // Get base image path
+  if (body.baseImagePath === undefined || body.baseImagePath === '') {
+    return res.status(400).send('Base image path is required.');
+  }
+  if (body.baseImagePath.length > 50) {
+    return res.status(400).send('Base image path is too long.');
+  }
+  if (body.baseImagePath.match(/[^a-zA-Z0-9_/]/g)) {
+    return res.status(400).send('Base image path can only contain letters, underscores and slashes.');
+  }
+  const baseImagePath = body.baseImagePath;
+
   // Extract ZIP file
   let project = req.files.project;
   let projectOutputDir = '/tmp/uploads/' + project.tempFilePath.split('/')[3] + '-output/'
