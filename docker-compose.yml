@@ -1,0 +1,12 @@
+version: "3.5"
+
+services:
+  extender:
+    restart: always
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - APP_PORT=3000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
